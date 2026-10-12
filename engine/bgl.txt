@@ -1,0 +1,16 @@
+0.25 renderizaçao simples com a cpu
+feito
+
+0.5 engine simples o suficiente
+--repo no git dps
+agora
+
+0.75 a troca de cpu para gpu com novas funcoes
+nao
+
+1 refatoraçao quase completa da engine
+nao
+
+1...
+linguagem
+exportaçao para vm/html
