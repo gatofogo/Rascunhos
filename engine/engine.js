@@ -7,14 +7,20 @@ const objects=[{create(me){
     load_image("imagems/miau2.jpg","gato")
 },step(me){
     if (touch_moved==true){
-    me.x=touch_move[0].clientX
-        me.y=touch_move[0].clientY
+        if(collision_rect(touch_move[0].clientX,touch_move[0].clientY,touch_move[0].clientX+me.col_x,touch_move[0].clientY+me.col_y,[1],[0]).length==0){
+            me.x=touch_move[0].clientX
+            me.y=touch_move[0].clientY
+        }
     }
 },draw(me){
     draw_sprite(me.x,me.y,"gato")
-}}]
+}},
+{create(me){},step(me){},draw(me){draw_set_color("red");draw_rect(me.x,me.y,me.x+me.col_x,me.y+me.col_y)}}]
 const room={id:0}
-const rooms=[{instances:[{obj_id:0,x:0,y:0,col_x:16,col_y:16}],clear_color:"black"}]
+const rooms=[{instances:[
+    {obj_id:0,x:0,y:0,col_x:48,col_y:48},
+    {obj_id:1,x:0,y:150,col_x:432,col_y:288}
+    ],clear_color:"black"}]
 const max_fps=17
 
 //- lets
@@ -48,7 +54,7 @@ function get_chunks_in_rect(x1,y1,x2,y2){
     if (bgl.diry==0)bgl.diry=1
     return {
         xi:Math.floor(x1/432),yi:Math.floor(y1/432),
-        xf:Math.floor(x2/432),yf:Math.floor(y2/432),
+        xf:Math.ceil(x2/432),yf:Math.ceil(y2/432),
         dirx:bgl.dirx,diry:bgl.diry
     }
 }
@@ -78,12 +84,12 @@ function collision_rect(x1,y1,x2,y2,target_obj_ids,ignore_ids){
          }
          if (pula) continue
          for(let l=0; l<target_obj_ids.length; l++){
-             if (instances[insts[i]].obj_id!=target_obj_ids[l]){
+             if (instances[insts[i]].obj_id==target_obj_ids[l]){
                  pula=true
                  break
              }
          }
-         if (pula) continue
+         if (!pula) continue
          let bgl=instances[insts[i]]
          if (bgl.x<x2 && bgl.y<y2 && bgl.x+bgl.col_x>x1 && bgl.y+bgl.col_y>y1){
              colided.push(insts[i])
@@ -96,6 +102,14 @@ function room_goto(room_id){
     room.id=room_id
     for(let i=0; i<instances.length; i++){
         objects[instances[i].obj_id].create(instances[i])
+        let chunkss2=get_chunks_in_rect(instances[i].x,instances[i].y,instances[i].x+instances[i].col_x,instances[i].y+instances[i].col_y)
+        for(let cx=0; Math.abs(cx)<Math.abs(chunkss2.xf-chunkss2.xi); cx+=chunkss2.dirx){
+            for(let cy=0; Math.abs(cy)<Math.abs(chunkss2.yf-chunkss2.yi); cy+=chunkss2.diry){
+                if(!chunks[cy])chunks[cy]=[]
+                if(!chunks[cy][cx])chunks[cy][cx]=[]
+                chunks[cy][cx].push(i)
+            }
+        }
     }
 }
 function room_goto_next(){
