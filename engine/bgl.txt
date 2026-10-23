@@ -1,16 +1,170 @@
-0.25 renderizaçao simples com a cpu
-feito
+Documentação: Módulo de Renderização WebGL (2D Sprite Renderer)Visão GeralEste módulo substitui a API Canvas 2D (CanvasRenderingContext2D) por WebGL 1.0 para transferir o processamento gráfico da CPU para a GPU. A resolução interna do viewport é fixa em 432x288 pixels.O pipeline converte coordenadas de tela (pixels) diretamente no Vertex Shader para o espaço de clipe do WebGL (NDC, que varia de -1.0 a 1.0), mantendo a origem (0,0) no canto superior esquerdo.1. ShadersVertex ShaderRecebe a posição em pixels e a coordenada de textura $UV$. Transforma pixels para o espaço de tela do WebGL e inverte o eixo Y para igualar a convenção 2D padrão.OpenGL Shading Languageattribute vec2 aPosition;
+attribute vec2 aTexCoord;
 
-0.5 engine simples o suficiente
---repo no git dps
-agora
+uniform vec2 uResolution;
 
-0.75 a troca de cpu para gpu com novas funcoes
-nao
+varying vec2 vTexCoord;
 
-1 refatoraçao quase completa da engine
-nao
+void main() {
+    // Converte de pixels (0 a Resolução) para a faixa 0.0 a 1.0
+    vec2 zeroToOne = aPosition / uResolution;
+    
+    // Converte de 0.0..1.0 para 0.0..2.0
+    vec2 zeroToTwo = zeroToOne * 2.0;
+    
+    // Converte de 0.0..2.0 para -1.0..1.0 (NDC)
+    vec2 clipSpace = zeroToTwo - 1.0;
+    
+    // Inverte Y para que 0 fique no topo da tela
+    gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0.0, 1.0);
+    
+    vTexCoord = aTexCoord;
+}
+Fragment ShaderAplica a amostragem de cor baseada na textura enviada e na coordenada $UV$ recebida do Vertex Shader.OpenGL Shading Languageprecision mediump float;
 
-1...
-linguagem
-exportaçao para vm/html
+varying vec2 vTexCoord;
+uniform sampler2D uSampler;
+
+void main() {
+    gl_FragColor = texture2D(uSampler, vTexCoord);
+}
+2. Estrutura de Dados e Estado InicialPara evitar alocações constantes dentro do loop de renderização, os buffers de vértices e UVs são reutilizados a cada chamada de desenho.JavaScript// Contexto e Estado
+const canvas = document.getElementById("canva");
+const gl = canvas.getContext("webgl");
+
+if (!gl) {
+    throw new Error("WebGL não suportado neste navegador.");
+}
+
+// Configuração do viewport e blending para transparência alpha
+gl.viewport(0, 0, canvas.width, canvas.height);
+gl.enable(gl.BLEND);
+gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+// Tabela de texturas carregadas na GPU
+const gpu_sprites = {};
+
+// Compilação de Shaders
+function compile_shader(gl, type, source) {
+    const shader = gl.createShader(type);
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        const info = gl.getShaderInfoLog(shader);
+        gl.deleteShader(shader);
+        throw new Error("Erro na compilação do Shader: " + info);
+    }
+    return shader;
+}
+
+const vertShader = compile_shader(gl, gl.VERTEX_SHADER, vsSource);
+const fragShader = compile_shader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+const program = gl.createProgram();
+gl.attachShader(program, vertShader);
+gl.attachShader(program, fragShader);
+gl.linkProgram(program);
+gl.useProgram(program);
+
+// Mapeamento de Atributos e Uniforms
+const locations = {
+    aPosition: gl.getAttribLocation(program, "aPosition"),
+    aTexCoord: gl.getAttribLocation(program, "aTexCoord"),
+    uResolution: gl.getUniformLocation(program, "uResolution"),
+    uSampler: gl.getUniformLocation(program, "uSampler")
+};
+
+// Define a resolução da room fixa no shader (432x288)
+gl.uniform2f(locations.uResolution, 432, 288);
+
+// Buffers fixos reutilizáveis
+const positionBuffer = gl.createBuffer();
+const texCoordBuffer = gl.createBuffer();
+3. Funções da API de Gráficosload_image_gpu(path, sprite_name)Carrega uma imagem via DOM, envia os dados para a VRAM e define filtros de filtragem por vizinho mais próximo (NEAREST) para preservar estética Pixel Art sem desfoque.JavaScriptfunction load_image_gpu(path, sprite_name) {
+    const texture = gl.createTexture();
+    const img = new Image();
+    
+    img.onload = function() {
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        
+        // Envia os pixels da imagem para a GPU
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+        
+        // Configurações para pixel art e repetição desligada
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        
+        gpu_sprites[sprite_name] = {
+            texture: texture,
+            width: img.width,
+            height: img.height
+        };
+    };
+    
+    img.src = path;
+}
+draw_sprite_gpu(sprite_name, x, y, width, height)Constrói a geometria de um retângulo (2 triângulos, 6 vértices) nas coordenadas passadas, mapeia as coordenadas de textura e executa a chamada gl.drawArrays.JavaScriptfunction draw_sprite_gpu(sprite_name, x, y, width, height) {
+    const spr = gpu_sprites[sprite_name];
+    if (!spr) return; // Imagem ainda não terminou de carregar
+
+    const w = width || spr.width;
+    const h = height || spr.height;
+
+    // 1. Posições dos 6 vértices (2 triângulos montando o quad)
+    const x1 = x;
+    const x2 = x + w;
+    const y1 = y;
+    const y2 = y + h;
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+        x1, y1,
+        x2, y1,
+        x1, y2,
+        x1, y2,
+        x2, y1,
+        x2, y2
+    ]), gl.DYNAMIC_DRAW);
+
+    gl.enableVertexAttribArray(locations.aPosition);
+    gl.vertexAttribPointer(locations.aPosition, 2, gl.FLOAT, false, 0, 0);
+
+    // 2. Coordenadas UV da textura (0.0 até 1.0)
+    gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+        0.0, 0.0,
+        1.0, 0.0,
+        0.0, 1.0,
+        0.0, 1.0,
+        1.0, 0.0,
+        1.0, 1.0
+    ]), gl.STATIC_DRAW);
+
+    gl.enableVertexAttribArray(locations.aTexCoord);
+    gl.vertexAttribPointer(locations.aTexCoord, 2, gl.FLOAT, false, 0, 0);
+
+    // 3. Vincula a textura carregada e desenha
+    gl.bindTexture(gl.TEXTURE_2D, spr.texture);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+}
+4. Integração no Loop Principal (draw_update)Para limpar a tela usando a GPU antes de desenhar as instâncias da room:JavaScriptfunction clear_screen_gpu(r, g, b, a) {
+    gl.clearColor(r, g, b, a);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+}
+
+// Dentro da sua função draw_update:
+function draw_update(timestamp) {
+    // ... Lógica de Step, Deltatime e Chunks aqui ...
+
+    // Limpa a tela (Ex: fundo preto -> 0, 0, 0, 1)
+    clear_screen_gpu(0.0, 0.0, 0.0, 1.0);
+
+    // Desenha as instâncias usando o renderizador de GPU
+    for (let i = 0; i < instances.length; i++) {
+        objects[instances[i].obj_id].draw(instances[i]);
+    }
+
+    requestAnimationFrame(draw_update);
+}
