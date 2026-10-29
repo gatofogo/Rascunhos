@@ -13,14 +13,16 @@ const objects=[{create(me){
         }
     }
 },draw(me){
-    draw_sprite(me.x,me.y,"gato")
+    draw_set_color(0,1,0)
+    draw_rect(me.x,me.y,me.x+me.col_x,me.y+me.col_y)
+    //draw_sprite(me.x,me.y,"gato")
 }},
-{create(me){},step(me){},draw(me){draw_set_color("red");draw_rect(me.x,me.y,me.x+me.col_x,me.y+me.col_y)}}]
+{create(me){},step(me){},draw(me){draw_set_color(0,0,0);draw_rect(me.x,me.y,me.x+me.col_x,me.y+me.col_y)}}]
 const room={id:0}
 const rooms=[{instances:[
     {obj_id:0,x:0,y:0,col_x:48,col_y:48},
     {obj_id:1,x:0,y:150,col_x:432,col_y:288}
-    ],clear_color:"black"}]
+    ],clear_color:[0,0,0]}]
 const max_fps=17
 
 //- lets
@@ -172,8 +174,8 @@ function draw_update(timestamp){
     touch_moved=false
     touch_started=false
     tick_update-=Math.floor(tick_update/max_fps)*max_fps
-    ctx.fillStyle=rooms[room.id].clear_color
-    ctx.fillRect(0,0,432,288)
+    draw_color=rooms[room.id].clear_color
+        draw_rect(0,0,432,288)
     
     for(let i=0; i<instances.length; i++){
         objects[instances[i].obj_id].draw(instances[i])
