@@ -4,13 +4,13 @@
 
 //- consts
 const objects=[{create(me){
-    
+    load_image("miau2.jpg","player")
 },step(me){
     
 },draw(me){
     draw_set_color(0,1,0)
     draw_rect(me.x,me.y,me.x+me.col_x,me.y+me.col_y)
-    //draw_sprite(me.x,me.y,"gato")
+    draw_sprite_scaled(me.x,me.y,0,6956521739130435,0,7272727272727273,"player")
 }},
 {create(me){},step(me){},draw(me){
     draw_set_color(1,0,0)
@@ -205,8 +205,7 @@ function draw_update(timestamp){
     touch_started=false
     tick_update-=Math.floor(tick_update/max_fps)*max_fps
     draw_color=rooms[room.id].clear_color
-        draw_rect(0,0,432,288)
-    
+        clear_all()
     for(let i=0; i<instances.length; i++){
         objects[instances[i].obj_id].draw(instances[i])
     }
