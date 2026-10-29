@@ -3,7 +3,7 @@ body {
   width: 100vw;
   height: 100vh;
   align-content: center;
-  background-color: darkblue;
+  background-color: black;
 }
 canvas {
   background-color: darkred;
