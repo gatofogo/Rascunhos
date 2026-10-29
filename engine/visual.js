@@ -1,4 +1,4 @@
-const background_color=[0,0,0]
+const background_color=[0,0,0,1]
 let draw_color=[1,1,1]
 //iniciando gpu
 const canva=document.getElementById("canva")
@@ -46,6 +46,23 @@ ctx.linkProgram(shaderProgram)
 ctx.useProgram(shaderProgram)
 const img_container=document.getElementById("sprites")
 
+const vertexBuffer=ctx.createBuffer()
+ctx.bindBuffer(ctx.ARRAY_BUFFER, vertexBuffer)
+
+// 4. Configuração dos Atributos (Conectando os dados ao Shader)
+const bytesPerFloat = Float32Array.BYTES_PER_ELEMENT;
+const stride = 5 * bytesPerFloat; // 2 floats para posição + 3 para cor
+
+// Atributo de Posição
+const aPositionLocation = ctx.getAttribLocation(shaderProgram, "aPosition");
+ctx.enableVertexAttribArray(aPositionLocation);
+ctx.vertexAttribPointer(aPositionLocation, 2, ctx.FLOAT, false, stride, 0);
+
+// Atributo de Cor
+const aColorLocation = ctx.getAttribLocation(shaderProgram, "aColor");
+ctx.enableVertexAttribArray(aColorLocation);
+ctx.vertexAttribPointer(aColorLocation, 3, ctx.FLOAT, false, stride, 2 * bytesPerFloat);
+
 const sprites={}
 
 function load_image(path,sprite_name){
@@ -61,28 +78,13 @@ function draw_gpu_triangle(x1,y1,x2,y2,x3,y3,r,g,b){
     x2, y2,   r, g, b, // Baixo Esquerda (Verde)
     x3, y3,   r, g, b  // Baixo Direita (Azul)
     ])
-    const vertexBuffer=ctx.createBuffer()
-    ctx.bindBuffer(ctx.ARRAY_BUFFER, vertexBuffer)
-    ctx.bufferData(ctx.ARRAY_BUFFER, triangleVertices, ctx.STATIC_DRAW)
-    
-    // 4. Configuração dos Atributos (Conectando os dados ao Shader)
-    const bytesPerFloat = Float32Array.BYTES_PER_ELEMENT;
-    const stride = 5 * bytesPerFloat; // 2 floats para posição + 3 para cor
 
-    // Atributo de Posição
-    const aPositionLocation = ctx.getAttribLocation(shaderProgram, "aPosition");
-    ctx.enableVertexAttribArray(aPositionLocation);
-    ctx.vertexAttribPointer(aPositionLocation, 2, ctx.FLOAT, false, stride, 0);
-
-    // Atributo de Cor
-    const aColorLocation = ctx.getAttribLocation(shaderProgram, "aColor");
-    ctx.enableVertexAttribArray(aColorLocation);
-    ctx.vertexAttribPointer(aColorLocation, 3, ctx.FLOAT, false, stride, 2 * bytesPerFloat);
-
-    // 5. Renderização (Desenho na Tela)
-    ctx.clearColor(0.1, 0.1, 0.1, 1.0); // Cor de fundo do canvas (cinza escuro)
+    ctx.bufferData(ctx.ARRAY_BUFFER, triangleVertices, ctx.DYNAMIC_DRAW)
+    ctx.drawArrays(ctx.TRIANGLES,0,3)
+}
+function clear_all(){
+    ctx.clearColor(background_color[0],background_color[1],background_color[2],background_color[3]);
     ctx.clear(ctx.COLOR_BUFFER_BIT);
-    ctx.drawArrays(ctx.TRIANGLE,0,3)
 }
 function draw_sprite(x,y,sprite){
     //ctx.fillRect(x,y,1,1)

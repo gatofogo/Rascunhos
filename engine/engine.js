@@ -4,20 +4,18 @@
 
 //- consts
 const objects=[{create(me){
-    load_image("imagems/miau2.jpg","gato")
+    
 },step(me){
-    if (touch_moved==true){
-        if(collision_rect(touch_move[0].clientX,touch_move[0].clientY,touch_move[0].clientX+me.col_x,touch_move[0].clientY+me.col_y,[1],[0]).length==0){
-            me.x=touch_move[0].clientX
-            me.y=touch_move[0].clientY
-        }
-    }
+    
 },draw(me){
     draw_set_color(0,1,0)
     draw_rect(me.x,me.y,me.x+me.col_x,me.y+me.col_y)
     //draw_sprite(me.x,me.y,"gato")
 }},
-{create(me){},step(me){},draw(me){draw_set_color(0,0,0);draw_rect(me.x,me.y,me.x+me.col_x,me.y+me.col_y)}}]
+{create(me){},step(me){},draw(me){
+    draw_set_color(1,0,0)
+    draw_rect(me.x,me.y,me.x+me.col_x,me.y+me.col_y)
+}}]
 const room={id:0}
 const rooms=[{instances:[
     {obj_id:0,x:0,y:0,col_x:48,col_y:48},
@@ -32,6 +30,10 @@ let chunks=[]
 let tipo_chunks={}
 let touch_start=[]
 let touch_move=[]
+
+let mouse_middle=false
+let mouse_down=false
+let mouse_down_right=false
 
 let touch_started=false
 let touch_moved=false
@@ -128,13 +130,41 @@ function room_goto_previus(){
 room_goto(0)
 
 //- listerings
-canva.addEventListener("touchstart", function(){
+canva.addEventListener("touchstart", function(e){
     touch_started=true
-    touch_start=event.targetTouches
+    touch_start=e.targetTouches
 })
-canva.addEventListener("touchmove", function(){
+canva.addEventListener("touchmove", function(e){
     touch_moved=true
-    touch_move=event.targetTouches
+    touch_move=e.targetTouches
+})
+canva.addEventListener("mousedown", function(e){
+    touch_start[0]=e
+    touch_started=true
+    if(e.button==0){
+        mouse_down=true
+    }else if(e.button==1){
+        mouse_middle=true
+    }else{
+        mouse_down_right=true
+    }
+})
+canva.addEventListener("mouseup", function(e){
+    if(e.button==0){
+        mouse_down=false
+    }else if(e.button==1){
+        mouse_middle=false
+    }else{
+        mouse_down_right=false
+    }
+})
+canva.addEventListener("mousemove", function(e){
+    touch_move[0]=e
+    if(mouse_down_right){
+        touch_moved=true
+    }else if(mouse_down){
+        touch_moved=true
+    }
 })
 
   //========//
