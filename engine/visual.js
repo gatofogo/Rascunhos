@@ -61,9 +61,8 @@ const img_container=document.getElementById("sprites")
 const vertexBuffer=ctx.createBuffer()
 ctx.bindBuffer(ctx.ARRAY_BUFFER, vertexBuffer)
 
-// 4. Configuração dos Atributos (Conectando os dados ao Shader)
-const bytesPerFloat = Float32Array.BYTES_PER_ELEMENT;
-const stride = 5 * bytesPerFloat; // 2 floats para posição + 3 para cor
+const bytesPerFloat = Float32Array.BYTES_PER_ELEMENT
+const stride = 7 * bytesPerFloat
 
 const aPositionLocation = ctx.getAttribLocation(shaderProgram, "aPosition")
 ctx.enableVertexAttribArray(aPositionLocation)
@@ -87,7 +86,7 @@ function load_image(path,sprite_name){
     img.onload = function(){
         const texture=ctx.createTexture();
         ctx.bindTexture(ctx.TEXTURE_2D,texture)
-        ctx.texImage2D(ctx.TEXTURE_2D,0,ctx.RGBA,ctx.UNSIGNED_BYTE, img)
+        ctx.texImage2D(ctx.TEXTURE_2D,0,ctx.RGBA,ctx.RGBA,ctx.UNSIGNED_BYTE, img)
         ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_S, ctx.CLAMP_TO_EDGE)
         ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_WRAP_T, ctx.CLAMP_TO_EDGE)
         ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, ctx.NEAREST)
@@ -190,6 +189,8 @@ function draw_rect(x1,y1,x2,y2){
     let gpuy1=y1/288
     let gpux2=x2/432
     let gpuy2=y2/288
+    const useTexLocation = ctx.getUniformLocation(shaderProgram, "uUseTexture")
+    ctx.uniform1i(useTexLocation, 0)
     draw_gpu_triangle(gpux1,gpuy1,gpux1,gpuy2,gpux2,gpuy1,draw_color[0],draw_color[1],draw_color[2])
     draw_gpu_triangle(gpux2,gpuy2,gpux1,gpuy2,gpux2,gpuy1,draw_color[0],draw_color[1],draw_color[2])
 }

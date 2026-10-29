@@ -1,26 +1,13 @@
   //============//
  //  creatong  //
 //============//
+canva.focus();
+
 
 //- consts
-const objects=[{create(me){
-    load_image("miau2.jpg","player")
-},step(me){
-    
-},draw(me){
-    draw_set_color(0,1,0)
-    draw_rect(me.x,me.y,me.x+me.col_x,me.y+me.col_y)
-    draw_sprite_scaled(me.x,me.y,0,6956521739130435,0,7272727272727273,"player")
-}},
-{create(me){},step(me){},draw(me){
-    draw_set_color(1,0,0)
-    draw_rect(me.x,me.y,me.x+me.col_x,me.y+me.col_y)
-}}]
+const objects=[]
 const room={id:0}
-const rooms=[{instances:[
-    {obj_id:0,x:0,y:0,col_x:48,col_y:48},
-    {obj_id:1,x:0,y:150,col_x:432,col_y:288}
-    ],clear_color:[0,0,0]}]
+const rooms=[{instances:[],clear_color:[0,0,0]}]
 const max_fps=17
 
 //- lets
@@ -35,8 +22,27 @@ let mouse_middle=false
 let mouse_down=false
 let mouse_down_right=false
 
+let keyboard_pressed={}
+let keyboard_down={}
+let keyboard_released={}
+
 let touch_started=false
 let touch_moved=false
+
+if(true){//todas as variaveis criadas aqui seram apagadas, criadas!=modificadas
+    const teclas="1234567890qwertyuiopasdfghjklzxcvbnmç,\\.;/~][´=-' "
+    const teclas_plus=["ctrl","shift","alt","altgr","tab","capslock","esc","enter","backspace"]
+    for(let i=0; i<teclas.length; i++){
+        keyboard_pressed[teclas[i]]=false
+        keyboard_down[teclas[i]]=false
+        keyboard_released[teclas[i]]=false
+    }
+    for(let i=0; i<teclas_plus.length; i++){
+        keyboard_pressed[teclas[i]]=false
+        keyboard_down[teclas[i]]=false
+        keyboard_released[teclas[i]]=false
+    }
+}
 
 
   //=============//
@@ -51,6 +57,9 @@ function get_instances_in_chunk(chunk_x,chunk_y){
         }
     }
     return []
+}
+function create_object(create,step,draw){
+    objects.push({create:create,step:step,draw:draw})
 }
 function get_chunks_in_rect(x1,y1,x2,y2){
     let bgl={dirx:Math.sign(x2-x1),diry:Math.sign(y2-y1)}
@@ -116,11 +125,28 @@ function room_goto(room_id){
         }
     }
 }
+function room_restart(){
+    room_goto(room.id)
+}
 function room_goto_next(){
     room_goto(room.id+1)
 }
 function room_goto_previus(){
     room_goto(room.id-1)
+}
+function getKeyName(event) {
+    let key = event.key.toLowerCase();
+    return key;
+}
+function clearInputStates() {
+    for (let key in keyboard_pressed) {
+        keyboard_pressed[key] = false;
+        keyboard_released[key] = false;
+    }
+    for (let key in keyboard_down) {
+        keyboard_pressed[key] = false;
+        keyboard_released[key] = false;
+    }
 }
   //============//
  //  starting  //
@@ -149,6 +175,28 @@ canva.addEventListener("mousedown", function(e){
         mouse_down_right=true
     }
 })
+canva.addEventListener("keydown", (e) => {
+    const key = getKeyName(e);
+    
+    // Se a tecla existe no seu controle de teclado
+    if (key in keyboard_down) {
+        // Se ela já estava down, significa que está sendo mantida (não é um "pressed" novo)
+        if (!keyboard_down[key]) {
+            keyboard_pressed[key] = true; // Acabou de ser pressionada neste frame
+        }
+        keyboard_down[key] = true;      // Continua abaixada
+    }
+});
+
+// 2. Evento quando a tecla é solta
+canva.addEventListener("keyup", (e) => {
+    const key = getKeyName(e);
+    
+    if (key in keyboard_down) {
+        keyboard_down[key] = false;
+        keyboard_released[key] = true; // Marcar que foi solta neste frame
+    }
+});
 canva.addEventListener("mouseup", function(e){
     if(e.button==0){
         mouse_down=false
@@ -203,6 +251,7 @@ function draw_update(timestamp){
     }
     touch_moved=false
     touch_started=false
+    clearInputStates()
     tick_update-=Math.floor(tick_update/max_fps)*max_fps
     draw_color=rooms[room.id].clear_color
         clear_all()
