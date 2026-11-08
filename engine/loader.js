@@ -1,6 +1,6 @@
 function loadAll(){
     document.getElementById("canva").style.display="flex"
-    const bgl=["jogo","engine","audio","visual"]
+    const bgl=["jogo","engine","audio","visual"] // a ordem é ao contraria
     document.getElementById("loaderbutton").remove()
     load_next(bgl)
 }
