@@ -5,6 +5,7 @@ canva.focus();
 
 
 //- consts
+const objectsn=[]
 const objects=[]
 const room={id:0}
 const rooms=[{instances:[],clear_color:[0,0,0]}]
@@ -62,8 +63,9 @@ function get_instances_in_chunk(chunk_x,chunk_y){
     }
     return []
 }
-function create_object(create,step,draw){
+function create_object(create,step,draw,name){
     objects.push({create:create,step:step,draw:draw})
+    if(name)objectsn[name]=objects.length-1
 }
 function get_chunks_in_rect(x1,y1,x2,y2){
     let bgl={dirx:Math.sign(x2-x1),diry:Math.sign(y2-y1)}
@@ -114,20 +116,29 @@ function collision_rect(x1,y1,x2,y2,target_obj_ids,ignore_ids){
      }
     return colided
 }
-function room_goto(room_id){
-    instances=rooms[room_id].instances
-    room.id=room_id
-    for(let i=0; i<instances.length; i++){
-        objects[instances[i].obj_id].create(instances[i])
-        let chunkss2=get_chunks_in_rect(instances[i].x,instances[i].y,instances[i].x+instances[i].col_x,instances[i].y+instances[i].col_y)
-        for(let cx=0; Math.abs(cx)<Math.abs(chunkss2.xf-chunkss2.xi); cx+=chunkss2.dirx){
-            for(let cy=0; Math.abs(cy)<Math.abs(chunkss2.yf-chunkss2.yi); cy+=chunkss2.diry){
-                if(!chunks[cy])chunks[cy]=[]
-                if(!chunks[cy][cx])chunks[cy][cx]=[]
-                chunks[cy][cx].push(i)
-            }
+function create_instance(object_id,x,y,col_x,col_y,customv){
+    const objectttt={obj_id:object_id,x:x,y:y,col_x:col_x,col_y:col_y,inst_id:instances.length}
+    for(const key in customv){
+        objectttt[key]=customv[key]
+    }
+    instances.push(objectttt)
+    objects[instances[instances.length-1].obj_id].create(instances[instances.length-1])
+    let chunkss2=get_chunks_in_rect(instances[instances.length-1].x,instances[instances.length-1].y,instances[instances.length-1].x+instances[instances.length-1].col_x,instances[instances.length-1].y+instances[instances.length-1].col_y)
+    for(let cx=0; Math.abs(cx)<Math.abs(chunkss2.xf-chunkss2.xi); cx+=chunkss2.dirx){
+        for(let cy=0; Math.abs(cy)<Math.abs(chunkss2.yf-chunkss2.yi); cy+=chunkss2.diry){
+            if(!chunks[cy])chunks[cy]=[]
+            if(!chunks[cy][cx])chunks[cy][cx]=[]
+            chunks[cy][cx].push(instances.length-1)
         }
     }
+}
+function room_goto(room_id){
+    instances=[]
+    room.id=room_id
+    for(let i=0; i<rooms[room_id].instances.length; i++){
+        create_instance(42,100,65,-1,69,rooms[room_id].instances[i])//como tem as variavels na sala ele sobre poen os outros valores comicos
+    }
+    
 }
 function room_restart(){
     room_goto(room.id)
@@ -152,6 +163,12 @@ function clearInputStates() {
         keyboard_released[key] = false;
     }
 }
+function move_and_colide(object,veloy,velox,obj_ids,inst_id,iterations){
+    for(let i=0; i<iterations; i++){
+        
+    }
+}
+
   //============//
  //  starting  //
 //============//
@@ -240,8 +257,8 @@ canva.addEventListener("mousemove", function(e){
 //- creating loops
 let timestamp_antes=0
 function draw_update(timestamp){
-    const deltatime=timestamp-timestamp_antes
-    const delta=deltatime/1000
+    deltatime=timestamp-timestamp_antes
+    delta=deltatime/1000
     timestamp_antes=timestamp
     tick_update+=deltatime
     for(let t=0; t<Math.floor(tick_update/max_fps); t++){
@@ -262,6 +279,8 @@ function draw_update(timestamp){
                 let chunkss2=get_chunks_in_rect(instances[i].x,instances[i].y,instances[i].x+instances[i].col_x,instances[i].y+instances[i].col_y)
                 for(let cx=0; Math.abs(cx)<Math.abs(chunkss2.xf-chunkss2.xi); cx+=chunkss2.dirx){
                     for(let cy=0; Math.abs(cy)<Math.abs(chunkss2.yf-chunkss2.yi); cy+=chunkss2.diry){
+                        if(!chunks[cy])chunks[cy]=[]
+                        if(!chunks[cy][cx])chunks[cy][cx]=[]
                         chunks[cy][cx].push(i)
                     }
                 }

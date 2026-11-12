@@ -101,6 +101,9 @@ function load_image(path,sprite_name){
         ctx.bindTexture(ctx.TEXTURE_2D, null);
     }
 }
+function sprite_exist(name){
+    return !!sprites[name] // o '!!' é uma pequena gambiarra para virar um bool
+}
 function draw_gpu_triangle(x1,y1,x2,y2,x3,y3,r,g,b){
     const triangleVertices = new Float32Array([
     x1, y1,   r, g, b, 0, 0,
