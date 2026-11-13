@@ -197,6 +197,20 @@ function draw_rect(x1,y1,x2,y2){
     draw_gpu_triangle(gpux1,gpuy1,gpux1,gpuy2,gpux2,gpuy1,draw_color[0],draw_color[1],draw_color[2])
     draw_gpu_triangle(gpux2,gpuy2,gpux1,gpuy2,gpux2,gpuy1,draw_color[0],draw_color[1],draw_color[2])
 }
+function draw_free_rect(x1,y1,x2,y2,x3,y3,x4,y4){
+    let gpux1=x1/432
+    let gpuy1=y1/288
+    let gpux2=x2/432
+    let gpuy2=y2/288
+    let gpux3=x3/432
+    let gpuy3=y3/288
+    let gpux4=x4/432
+    let gpuy4=y4/288
+    const useTexLocation = ctx.getUniformLocation(shaderProgram, "uUseTexture")
+    ctx.uniform1i(useTexLocation, 0)
+    draw_gpu_triangle(gpux1,gpuy1,gpux2,gpuy2,gpux3,gpuy3,draw_color[0],draw_color[1],draw_color[2])
+    draw_gpu_triangle(gpux4,gpuy4,gpux2,gpuy2,gpux3,gpuy3,draw_color[0],draw_color[1],draw_color[2])
+}
 function draw_set_color(r,g,b){
     draw_color=[r,g,b]
 }
