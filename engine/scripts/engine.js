@@ -163,9 +163,20 @@ function clearInputStates() {
         keyboard_released[key] = false;
     }
 }
-function move_and_colide(object,veloy,velox,obj_ids,inst_id,iterations){
+function move_and_colide(object,veloy,velox,obj_ids,iterations){
+    let qual_foi={x:false,y:false}
     for(let i=0; i<iterations; i++){
-        
+        if(!qual_foi.x){
+            if(collision_rect(object.x+velox/iterations,object.y,object.x+object.col_x+velox/iterations,object.y+object.col_y,obj_ids,[object.obj_id]).length==0){
+                object.x+=velox
+            }else qual_foi.x=true
+        }
+        if(!qual_foi.y){
+            if(collision_rect(object.x,object.y+veloy/iterations,object.x+object.col_x,object.y+object.col_y+veloy/iterations,obj_ids,[object.obj_id]).length==0){
+                object.y+=veloy
+            }else qual_foi.y=true
+        }
+        if(qual_foi.x && qual_foi.y)break
     }
 }
 
