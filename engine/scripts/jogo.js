@@ -4,9 +4,10 @@ create_object(function(me){
 },function(me){
     me.last_pos={x:me.x,y:me.y}
     me.positional=0
-    if(touch.length>0){
-        me.x=touch[0].clientX
-        me.y=touch[0].clientY
+    let velox=0
+    for(let i=0; i<touch.length; i++){
+        me.x=touch[i].clientX
+        me.y=touch[i].clientY
     }
 },function(me){
     const bagulhau3=me.positional/17
@@ -22,7 +23,7 @@ create_object(function(me){
     }
     draw_set_color(1,0,0)
     draw_rect(piss.x,piss.y,piss.x+me.col_x,piss.y+me.col_y)
-},"colisao")
+},"player1")
 
 rooms[0]={
     instances:[
