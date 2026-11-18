@@ -1,4 +1,4 @@
-const background_color=[0,0,0,1]
+let background_color=[0,0,0,1]
 let draw_color=[1,1,1]
 //iniciando gpu
 const canva=document.getElementById("canva")
@@ -36,6 +36,9 @@ const fsSource = `
                 }
             }
         `;
+
+let wwidth=432
+let wheigth=288
 
 function createShader(ctx,type,source){
     const shader = ctx.createShader(type);
@@ -126,10 +129,10 @@ function draw_sprite(x,y,sprite_name){
     let x2=x+sprite.width
     let y2=y+sprite.height
 
-    let gpux1 = x1 / 432
-    let gpuy1 = y1 / 288
-    let gpux2 = x2 / 432
-    let gpuy2 = y2 / 288
+    let gpux1 = x1 / wwidth
+    let gpuy1 = y1 / wheigth
+    let gpux2 = x2 / wwidth
+    let gpuy2 = y2 / wheigth
 
     const vertices = new Float32Array([
         gpux1, gpuy1,      1, 1, 1,      0.0, 0.0,
@@ -161,10 +164,10 @@ function draw_sprite_scaled(x,y,width,height,sprite_name){
     let x2=x+sprite.width*width
     let y2=y+sprite.height*height
 
-    let gpux1 = x1 / 432
-    let gpuy1 = y1 / 288
-    let gpux2 = x2 / 432
-    let gpuy2 = y2 / 288
+    let gpux1 = x1 / wwidth
+    let gpuy1 = y1 / wheigth
+    let gpux2 = x2 / wwidtg
+    let gpuy2 = y2 / wheigth
 
     const vertices = new Float32Array([
         gpux1, gpuy1,      1, 1, 1,      0.0, 0.0,
@@ -188,24 +191,24 @@ function draw_sprite_scaled(x,y,width,height,sprite_name){
     ctx.drawArrays(ctx.TRIANGLES, 0, 6)
 }   
 function draw_rect(x1,y1,x2,y2){
-    let gpux1=x1/432
-    let gpuy1=y1/288
-    let gpux2=x2/432
-    let gpuy2=y2/288
+    let gpux1=x1/wwidth
+    let gpuy1=y1/wheigth
+    let gpux2=x2/wwidth
+    let gpuy2=y2/wheigth
     const useTexLocation = ctx.getUniformLocation(shaderProgram, "uUseTexture")
     ctx.uniform1i(useTexLocation, 0)
     draw_gpu_triangle(gpux1,gpuy1,gpux1,gpuy2,gpux2,gpuy1,draw_color[0],draw_color[1],draw_color[2])
     draw_gpu_triangle(gpux2,gpuy2,gpux1,gpuy2,gpux2,gpuy1,draw_color[0],draw_color[1],draw_color[2])
 }
 function draw_free_rect(x1,y1,x2,y2,x3,y3,x4,y4){
-    let gpux1=x1/432
-    let gpuy1=y1/288
-    let gpux2=x2/432
-    let gpuy2=y2/288
-    let gpux3=x3/432
-    let gpuy3=y3/288
-    let gpux4=x4/432
-    let gpuy4=y4/288
+    let gpux1=x1/wwidth
+    let gpuy1=y1/wheigth
+    let gpux2=x2/wwidth
+    let gpuy2=y2/wheigth
+    let gpux3=x3/wwidth
+    let gpuy3=y3/wheigth
+    let gpux4=x4/wwidth
+    let gpuy4=y4/wheigth
     const useTexLocation = ctx.getUniformLocation(shaderProgram, "uUseTexture")
     ctx.uniform1i(useTexLocation, 0)
     draw_gpu_triangle(gpux1,gpuy1,gpux2,gpuy2,gpux3,gpuy3,draw_color[0],draw_color[1],draw_color[2])

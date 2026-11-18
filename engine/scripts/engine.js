@@ -21,6 +21,8 @@ let touch_move=[]
 let touch_end=[]
 let touch=[]
 
+let chunk_size=432
+
 let mouse_middle=false
 let mouse_down=false
 let mouse_down_right=false
@@ -72,8 +74,8 @@ function get_chunks_in_rect(x1,y1,x2,y2){
     if (bgl.dirx==0)bgl.dirx=1
     if (bgl.diry==0)bgl.diry=1
     return {
-        xi:Math.floor(x1/432),yi:Math.floor(y1/432),
-        xf:Math.ceil(x2/432),yf:Math.ceil(y2/432),
+        xi:Math.floor(x1/chunk_size),yi:Math.floor(y1/chunk_size),
+        xf:Math.ceil(x2/chunk_size),yf:Math.ceil(y2/chunk_size),
         dirx:bgl.dirx,diry:bgl.diry
     }
 }
@@ -135,6 +137,8 @@ function create_instance(object_id,x,y,col_x,col_y,customv){
 function room_goto(room_id){
     instances=[]
     room.id=room_id
+    background_color=rooms[room_id].clear_color
+    background_color.push([1])
     for(let i=0; i<rooms[room_id].instances.length; i++){
         create_instance(42,100,65,-1,69,rooms[room_id].instances[i])//como tem as variavels na sala ele sobre poen os outros valores comicos
     }
